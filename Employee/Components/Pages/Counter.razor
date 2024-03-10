@@ -122,4 +122,36 @@
         }
         report = builder.GetReport();
     }
+
+    private string GetReport()
+    {
+        string report = String.Empty;
+        report += $"Отчет за период: <strong>{_dateRange.Start.Value.ToString("dd.MM.yyyy")} ---- {_dateRange.End.Value.ToString("dd.MM.yyyy")}</strong>\n <br/>";
+        report += "\n----------------------------------------------------------------------------------------------------\n";
+        report += string.Join(Environment.NewLine,
+                    employees.Select(e =>
+                    $"{e.Name} | <strong>{e.Salary}<span style=\"color: green\">$</span></strong> | {e.Payday.ToString("dd.MM.yyyy")}<br/>"));
+
+        report += "\n----------------------------------------------------------------------------------------------------\n<br/>";
+        report += $"\nВсего сотрудников: {employees.Count()}, " +
+                $"Итого выплачен: <strong>{employees.Sum(e => e.Salary)}<span style=\"color: green\">$</span></strong>";
+
+        return report;
+    }
+
+    private string GetReportExtraPaid()
+    {
+        string report = String.Empty;
+        report += $"Отчет за период: <strong>{_dateRange.Start.Value.ToString("dd.MM.yyyy")} ---- {_dateRange.End.Value.ToString("dd.MM.yyyy")}</strong>\n <br/>";
+        report += "\n----------------------------------------------------------------------------------------------------\n";
+        report += string.Join(Environment.NewLine,
+                    employees.Select(e =>
+                    $"{e.Name} | <strong>{(e.IsExtraPaid ? "<span style=\"color: green\">Получил премию</span>" : "<span style=\"color: red\">Не получил</span>")}</strong> | {e.Payday.ToString("dd.MM.yyyy")}<br/>"));
+
+        report += "\n----------------------------------------------------------------------------------------------------\n<br/>";
+        report += $"\nВсего сотрудников: {employees.Count()}, " +
+            $"Процент премированых: <strong>{Math.Round((double)_employees.Where(x => x.IsExtraPaid).Count() / (double)employees.Count() * 100, 2)}<span style=\"color: blue\">%</strong>";
+
+        return report;
+    }
 }
