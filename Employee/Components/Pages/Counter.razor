@@ -1,6 +1,9 @@
 ﻿@page "/counter"
 @rendermode InteractiveServer
 
+@inject ISnackbar Snackbar
+
+
 <MyMudProviders />
 
 <MudTable  Items="@employees" Hover="true">
@@ -8,11 +11,13 @@
         <MudTh>Имя</MudTh>
         <MudTh>Выплачено</MudTh>
         <MudTh>Дата</MudTh>
+        <MudTd>Премия</MudTd>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Nr">@context.Name</MudTd>
         <MudTd DataLabel="Sign">@context.Salary $</MudTd>
         <MudTd DataLabel="Name">@context.Payday.ToString("dd.MM.yyyy")</MudTd>
+        <MudTd DataLabel="Sign">@context.IsExtraPaid</MudTd>
     </RowTemplate>
     <PagerContent>
         <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100, int.MaxValue }"
@@ -27,6 +32,11 @@
 </MudTable>
 
 <div style="display: flex; flex-direction: row; justify-content: start; margin-top: 40px; margin-bottom: 40px">
+    <MudSelect T="string" @ref=ReportType Label="Вид отчета" AnchorOrigin="Origin.BottomCenter">
+        <MudSelectItem Value="@("Отчет по зарплатам")" />
+        <MudSelectItem Value="@("Отчет по премиям")" />
+    </MudSelect>
+
     <MudDateRangePicker Label="Период отчета" @bind-DateRange="_dateRange" />
     <MudButton Style="margin-left: 20px" Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">Сформировать</MudButton>
 </div>
@@ -65,6 +75,7 @@
     List<string> firstNames = new();
     List<string> lastNames = new();
     List<Employee> employees = new();
+    MudSelect<string> ReportType;
 
     EmployeeReport? report = null;
 
@@ -84,7 +95,7 @@
 
         for (int i = 0; i < EMPLOYEES_COUNT; i++)
         {
-            employees.Add(new Employee() { Name = $"{firstNames[rnd.Next(0, firstNames.Count)]} {lastNames[rnd.Next(0, lastNames.Count)]}", Salary = rnd.Next(150, 1500), Payday = new DateTime(rnd.Next(2023, 2025), rnd.Next(1, 12), rnd.Next(1, 28)) });
+            employees.Add(new Employee() { Name = $"{firstNames[rnd.Next(0, firstNames.Count)]} {lastNames[rnd.Next(0, lastNames.Count)]}", Salary = rnd.Next(150, 1500), Payday = new DateTime(rnd.Next(2023, 2025), rnd.Next(1, 12), rnd.Next(1, 28)), IsExtraPaid = (rnd.Next(-100, 99) >= 0) });
         }
 
         return employees;
@@ -95,7 +106,20 @@
         EmployeeReportBuilder builder = new EmployeeReportBuilder(employees, _dateRange);
         EmployeeReportDirector director = new EmployeeReportDirector(builder);
 
-        director.Build();
+        switch (ReportType.Value)
+        {
+            case "Отчет по зарплатам":
+                director.Build();
+                break;
+
+            case "Отчет по премиям":
+                director.BuildExtraPaid();
+                break;
+
+            default:
+                Snackbar.Add("Выберите вид отчета!", Severity.Error);
+                break;
+        }
         report = builder.GetReport();
     }
 }

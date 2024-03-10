@@ -16,5 +16,13 @@
                 .BuildBody()
                 .BuildFooter();
         }
+
+        public void BuildExtraPaid()
+        {
+            _builder
+                .BuildHeader()
+                .BuildExtraPaidBody()
+                .BuildExtraPaidFooter();
+        }
     }
 }

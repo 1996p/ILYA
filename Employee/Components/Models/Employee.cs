@@ -7,5 +7,7 @@
         public decimal Salary { get; set; }
 
         public DateTime Payday { get; set; }
+
+        public bool IsExtraPaid { get; set; }
     }
 }
