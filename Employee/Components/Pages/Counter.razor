@@ -2,7 +2,7 @@
 @rendermode InteractiveServer
 
 @inject ISnackbar Snackbar
-
+@using Employee.Components.Models.LAB2
 
 <MyMudProviders />
 
@@ -45,9 +45,7 @@
 {
     <MudPaper>
         <div style="display: flex; flex-direction: column">
-            <div>@((MarkupString)report.Header)</div>
-            <div>@((MarkupString)report.Body)</div>
-            <div>@((MarkupString)report.Footer)</div>
+            <div>@((MarkupString)report)</div>
         </div>
     </MudPaper>
 }
@@ -77,7 +75,7 @@
     List<Employee> employees = new();
     MudSelect<string> ReportType;
 
-    EmployeeReport? report = null;
+    string report = null;
 
     protected override void OnInitialized()
     {
@@ -103,55 +101,42 @@
 
     private void IncrementCount()
     {
-        EmployeeReportBuilder builder = new EmployeeReportBuilder(employees, _dateRange);
-        EmployeeReportDirector director = new EmployeeReportDirector(builder);
 
         switch (ReportType.Value)
         {
             case "Отчет по зарплатам":
-                director.Build();
+                report = GetReport();
                 break;
 
             case "Отчет по премиям":
-                director.BuildExtraPaid();
+                report = GetReportExtraPaid();
                 break;
 
             default:
                 Snackbar.Add("Выберите вид отчета!", Severity.Error);
                 break;
         }
-        report = builder.GetReport();
     }
 
     private string GetReport()
     {
-        string report = String.Empty;
-        report += $"Отчет за период: <strong>{_dateRange.Start.Value.ToString("dd.MM.yyyy")} ---- {_dateRange.End.Value.ToString("dd.MM.yyyy")}</strong>\n <br/>";
-        report += "\n----------------------------------------------------------------------------------------------------\n";
-        report += string.Join(Environment.NewLine,
-                    employees.Select(e =>
-                    $"{e.Name} | <strong>{e.Salary}<span style=\"color: green\">$</span></strong> | {e.Payday.ToString("dd.MM.yyyy")}<br/>"));
+        SalaryReport report = new SalaryReport(employees, _dateRange);
+        report.BuildCompletedReport();
 
-        report += "\n----------------------------------------------------------------------------------------------------\n<br/>";
-        report += $"\nВсего сотрудников: {employees.Count()}, " +
-                $"Итого выплачен: <strong>{employees.Sum(e => e.Salary)}<span style=\"color: green\">$</span></strong>";
+        string reportAsStr = report.ToString();
 
-        return report;
+        return reportAsStr;
     }
 
     private string GetReportExtraPaid()
     {
-        string report = String.Empty;
-        report += $"Отчет за период: <strong>{_dateRange.Start.Value.ToString("dd.MM.yyyy")} ---- {_dateRange.End.Value.ToString("dd.MM.yyyy")}</strong>\n <br/>";
-        report += "\n----------------------------------------------------------------------------------------------------\n";
-        report += string.Join(Environment.NewLine,
-                    employees.Select(e =>
-                    $"{e.Name} | <strong>{(e.IsExtraPaid ? "<span style=\"color: green\">Получил премию</span>" : "<span style=\"color: red\">Не получил</span>")}</strong> | {e.Payday.ToString("dd.MM.yyyy")}<br/>"));
+        ExtraPayReport report = new ExtraPayReport(employees, _dateRange);
+        report.BuildCompletedReport();
 
-        report += "\n----------------------------------------------------------------------------------------------------\n<br/>";
-        report += $"\nВсего сотрудников: {employees.Count()}, " +
-            $"Процент премированых: <strong>{Math.Round((double)_employees.Where(x => x.IsExtraPaid).Count() / (double)employees.Count() * 100, 2)}<span style=\"color: blue\">%</strong>";
+        string reportAsStr = report.ToString();
 
-        return report;
+        return reportAsStr;
+
+
     }
 }
